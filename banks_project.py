@@ -43,10 +43,10 @@ def extract(url, table_attribs):
     tables = data.find_all('tbody')
     rows = tables[0].find_all('tr')
     for row in rows:
-        col = row.find_all('td')
-        if len(col) >= 3:
+        if row.find('td') is not None:
+            col = row.find_all('td')
             data_dict = {"Name":col[1].text.strip(),
-                         "MC_USD_Billion": col[2].text.strip()}
+                    "MC_USD_Billion": col[2].text.strip()}
             df1 = pd.DataFrame(data_dict, index=[0])
             df = pd.concat([df, df1], ignore_index=True)
     return df
