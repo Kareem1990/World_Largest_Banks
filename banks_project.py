@@ -15,8 +15,9 @@ url = "https://web.archive.org/web/20230908091635/https://en.wikipedia.org/wiki/
 table_attribs = ["Name", "MC_USD_Billion"]
 csv_path = './exchange_rate.csv'
 output_csv = "./Largest_banks_data.csv"
-database_name = "Banks.db"
+db_name = "Banks.db"
 table_name = "Largest_banks"
+sql_connection = sqlite3.connect('Banks.db')
 
 
 # # Code for ETL operations on Country-GDP data
@@ -107,14 +108,38 @@ def load_to_csv(df, output_csv):
 
 load_to_csv(df, output_csv)
 
+
 def load_to_db(df, sql_connection, table_name):
     ''' This function saves the final data frame to a database
     table with the provided name. Function returns nothing.'''
 
-def run_query(query_statement, sql_connection):
-    ''' This function runs the query on the database table and
-    prints the output on the terminal. Function returns nothing. '''
+    df.to_sql(table_name, sql_connection, if_exists='replace', index=False)
 
-''' Here, you define the required entities and call the relevant
-functions in the correct order to complete the project. Note that this
-portion is not inside any function.'''
+load_to_db(df,sql_connection, table_name)
+
+
+def run_query(sql_connection, query_statement):
+    ''' This function runs the query on the database table,
+    prints the query statement, and returns the results. '''
+
+    cursor = sql_connection.cursor()  # ✅ Create a cursor object
+    cursor.execute(query_statement)   # ✅ Execute the SQL query
+    results = cursor.fetchall()       # ✅ Fetch all results
+
+    print(f"Query: {query_statement}")  # ✅ Print the query being executed
+    for row in results:
+        print(row)  # ✅ Print each row from the results
+
+    return results  # ✅ Return results if needed
+
+# ✅ Run the required queries
+query1 = "SELECT * FROM Largest_banks"
+query2 = "SELECT AVG(MC_GBP_Billion) FROM Largest_banks"
+query3 = "SELECT Name FROM Largest_banks LIMIT 5"
+
+run_query(sql_connection, query1)  # ✅ Print full table
+run_query(sql_connection, query2)  # ✅ Print avg market cap
+run_query(sql_connection, query3)  # ✅ Print top 5 bank names
+
+# ✅ Close the SQL connection at the end
+sql_connection.close()
