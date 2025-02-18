@@ -41,7 +41,7 @@ def extract(url, table_attribs):
     data = BeautifulSoup(page, 'html.parser')
     df = pd.DataFrame(columns=table_attribs)
     tables = data.find_all('tbody')
-    rows = tables[1].find_all('tr')
+    rows = tables[0].find_all('tr')
     for row in rows:
         col = row.find_all('td')
         if len(col) >= 3:
@@ -126,5 +126,6 @@ run_query(sql_connection, query2)  # Print avg market cap
 run_query(sql_connection, query3)  #  Print top 5 bank names
 
 log_progress('Process Complete.')
+
 # Close the SQL connection at the end
 sql_connection.close()
