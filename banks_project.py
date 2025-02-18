@@ -20,21 +20,6 @@ table_name = "Largest_banks"
 sql_connection = sqlite3.connect('Banks.db')
 
 
-# # Code for ETL operations on Country-GDP data
-
-# # Importing the required libraries
-
-# # Read all tables
-# tables = pd.read_html(url)
-
-# # Print number of tables
-# print(f"Total tables found: {len(tables)}")
-
-# # Print preview of each table (first 5 rows)
-# for i, table in enumerate(tables):
-#     print(f"\nTable Index {i}:")
-#     print(table.head())
-
 def log_progress(message):
     ''' This function logs the mentioned message of a given stage of the
     code execution to a log file. Function returns nothing'''
@@ -43,7 +28,7 @@ def log_progress(message):
     now = datetime.now() # get current timestamp 
     timestamp = now.strftime(timestamp_format) 
     # Write the log entry to code_log.txt
-    with open("code_log.txt", "a") as log_file:
+    with open("./code_log.txt", "a") as log_file:
         log_file.write(f"{timestamp} : {message}\n")
     
     # Print log for immediate feedback
@@ -59,10 +44,6 @@ def extract(url, table_attribs):
     rows = tables[1].find_all('tr')
     for row in rows:
         col = row.find_all('td')
-
-        # # Print raw row contents for debugging
-        # print([cell.text.strip() for cell in col])
-
         if len(col) >= 3:
             data_dict = {"Name":col[1].text.strip(),
                          "MC_USD_Billion": col[2].text.strip()}
@@ -70,10 +51,9 @@ def extract(url, table_attribs):
             df = pd.concat([df, df1], ignore_index=True)
     return df
 
+log_progress('Preliminaries complete. Initiating ETL process')
 df = extract(url, table_attribs)
 print(df)
-
-
 
 
 def transform(df, csv_path):
@@ -96,6 +76,7 @@ def transform(df, csv_path):
     df['MC_INR_Billion'] = np.round(df['MC_USD_Billion'] * exchange_rate['INR'], 2)
 
     return df
+log_progress('Data extraction complete. Initiating Transformation process')
 df = transform(df, csv_path)
 print(df['MC_EUR_Billion'][4])
 print(df)
@@ -106,8 +87,9 @@ def load_to_csv(df, output_csv):
     df.to_csv(output_csv, index=False)
     print(f"Data successfully saved to: {output_csv}")
 
+log_progress('Data transformation complete. Initiating loading process')
 load_to_csv(df, output_csv)
-
+log_progress('Data saved to CSV file')
 
 def load_to_db(df, sql_connection, table_name):
     ''' This function saves the final data frame to a database
@@ -115,6 +97,7 @@ def load_to_db(df, sql_connection, table_name):
 
     df.to_sql(table_name, sql_connection, if_exists='replace', index=False)
 
+log_progress('SQL Connection initiated.')
 load_to_db(df,sql_connection, table_name)
 
 
@@ -122,24 +105,26 @@ def run_query(sql_connection, query_statement):
     ''' This function runs the query on the database table,
     prints the query statement, and returns the results. '''
 
-    cursor = sql_connection.cursor()  # ✅ Create a cursor object
-    cursor.execute(query_statement)   # ✅ Execute the SQL query
-    results = cursor.fetchall()       # ✅ Fetch all results
+    cursor = sql_connection.cursor()  # Create a cursor object
+    cursor.execute(query_statement)   #  Execute the SQL query
+    results = cursor.fetchall()       #  Fetch all results
 
-    print(f"Query: {query_statement}")  # ✅ Print the query being executed
+    print(f"Query: {query_statement}")  # Print the query being executed
     for row in results:
-        print(row)  # ✅ Print each row from the results
+        print(row)  # Print each row from the results
 
-    return results  # ✅ Return results if needed
+    return results  # Return results if needed
 
-# ✅ Run the required queries
+# Run the required queries
 query1 = "SELECT * FROM Largest_banks"
 query2 = "SELECT AVG(MC_GBP_Billion) FROM Largest_banks"
 query3 = "SELECT Name FROM Largest_banks LIMIT 5"
 
-run_query(sql_connection, query1)  # ✅ Print full table
-run_query(sql_connection, query2)  # ✅ Print avg market cap
-run_query(sql_connection, query3)  # ✅ Print top 5 bank names
+log_progress('Data loaded to Database as table. Running the query')
+run_query(sql_connection, query1)  # Print full table
+run_query(sql_connection, query2)  # Print avg market cap
+run_query(sql_connection, query3)  #  Print top 5 bank names
 
-# ✅ Close the SQL connection at the end
+log_progress('Process Complete.')
+# Close the SQL connection at the end
 sql_connection.close()
